@@ -1,18 +1,26 @@
 var MessagesView = {
 
   $chats: $('#chats'),
+  $submit: $('.submit'),
 
-  initialize: function() {
-    // add click event to submit
-    $('.submit').click(() => {
-      Messages.add()
-    });
-
+  initialize: function(data) {
+     // loop through object data
+     let messages = data.results;
+     // for each message object
+     for(let i = messages.length - 1; i >= 0; i--){
+       // pass it into render message
+       this.renderMessage(messages[i]);
+     }
   },
 
-  renderMessage: function({ username, text, roomname }) {
+  renderMessage: function({ username = 'anonymous', text = '', roomname = 'lobby' }) {
+    if(roomname === ''){
+      roomname = 'lobby';
+    }
     // replace open angle brackets
-    text.replace(/</g, '&#60;');
+    text = String(text).replace(/</g, '&#60;');
+    username = String(username).replace(/[^A-Z0-9]+/ig, "_");
+    roomname = String(roomname).replace(/[^A-Z0-9]+/ig, "_");
     // generate message
     $message = (`
       <div class="chat">
@@ -21,16 +29,18 @@ var MessagesView = {
       </div>
     `);
     // add the message to roomname div
-    $('#' + roomname).append($message);
-
-    if (Friends.toggled[username]) {
-      Friends.toggleStatus(username);
+    if(roomname !== 'lobby' && !Rooms.partyRooms[roomname]){
+      Rooms.add(roomname);
+       $('#chats #' + roomname).hide();
     }
 
-    $('.' + username).click(() => {
-      Friends.toggled[username] = true;
+    $('#chats #' + roomname).prepend($message);
+
+    $('#chats #' + roomname + ' .chat .' + username + ':first').click(() => {
+      console.log('click');
       Friends.toggleStatus(username);
     });
+
   }
 
 };
